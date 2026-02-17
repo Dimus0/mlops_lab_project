@@ -24,40 +24,28 @@ def parser_args():
 
     return parser.parse_args()
 
-def preprocessing_and_split_X_y(df):
-
-    df = df.drop(columns=["customerID"])
-    df.dropna(inplace=True)
-
-    encoder = LabelEncoder()
-    for column in df.columns:
-        if df[column].dtype == "str" or df[column].dtype == "object":
-            df[column] = encoder.fit_transform(df[column])
-    
-    X = df.drop(columns=["Churn"])
-    y = df["Churn"]
-
-    smote = SMOTE(random_state=42)
-    X_balance, y_balanced = smote.fit_resample(X, y)
-
-
-    return df, X_balance, y_balanced
-
 def main():
     args = parser_args()
     
-    df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\raw\WA_Fn-UseC_-Telco-Customer-Churn.csv",sep=",")
+    df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\raw\telco_dataset.csv",sep=",")
 
-    df, X, y = preprocessing_and_split_X_y(df)
+    X = df.drop(columns=["customerID","Churn"])
     feature_names = X.columns.tolist()
 
-    X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=42)
+    train_df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\prepared\train.csv")
+    test_df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\prepared\test.csv")
+
+    X_train = train_df.drop(columns=["Churn"])
+    y_train = train_df["Churn"]
+    X_test = test_df.drop(columns=["Churn"])
+    y_test = test_df["Churn"]
+
     mlflow.set_tracking_uri(r"file:///D:/Python/MLOPS/mlops_lab_1/mlruns")
     mlflow.set_experiment("MLOPS_LAB_1-TelcoChurn")
 
     with mlflow.start_run():
 
-        mlflow.set_tag({
+        mlflow.set_tags({
             "author": "Puhachevskyi Dmytro",
             "dataset": "Telco Customer Churn",
             "model": "RandomForestClassifier"
