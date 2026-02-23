@@ -4,7 +4,6 @@ env/
 .env
 venv/
 .venv
-data/
 models/
 .ipynb_checkpoints
 mlruns/
@@ -12,3 +11,4 @@ mlruns/
 .vscode/
 mlflow.db
 mlruns/
+data/

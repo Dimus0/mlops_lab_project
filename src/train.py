@@ -26,21 +26,21 @@ def parser_args():
 
 def main():
     args = parser_args()
-    
-    df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\raw\telco_dataset.csv",sep=",")
 
-    X = df.drop(columns=["customerID","Churn"])
-    feature_names = X.columns.tolist()
 
+    print("Loading data...")
     train_df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\prepared\train.csv")
     test_df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\prepared\test.csv")
+    print("Data loaded successfully.")
 
     X_train = train_df.drop(columns=["Churn"])
     y_train = train_df["Churn"]
     X_test = test_df.drop(columns=["Churn"])
     y_test = test_df["Churn"]
 
-    mlflow.set_tracking_uri(r"file:///D:/Python/MLOPS/mlops_lab_1/mlruns")
+    feature_names = X_train.columns.tolist()
+
+    mlflow.set_tracking_uri(r"sqlite:///D:/Python/MLOPS/mlops_lab_1/mlflow.db")
     mlflow.set_experiment("MLOPS_LAB_1-TelcoChurn")
 
     with mlflow.start_run():
@@ -62,6 +62,7 @@ def main():
         model = RandomForestClassifier(
             n_estimators=args.n_estimators,
             max_depth=args.max_depth,
+            criterion=args.criterion,
             class_weight="balanced",
             random_state=42
         )
@@ -69,12 +70,12 @@ def main():
         model.fit(X_train,y_train)
 
         # predict
-        y_pred = model.predict(X_test)
+        y_test_pred = model.predict(X_test)
         y_train_pred = model.predict(X_train)
 
 
-        acc_test = accuracy_score(y_test,y_pred)
-        f1_test = f1_score(y_test,y_pred)
+        acc_test = accuracy_score(y_test,y_test_pred)
+        f1_test = f1_score(y_test,y_test_pred)
 
         acc_train = accuracy_score(y_train,y_train_pred)
         f1_train = f1_score(y_train,y_train_pred)
@@ -85,10 +86,11 @@ def main():
             "accuracy_test": acc_test,
             "f1_test": f1_test
         })
+
         print(
         f"Train | Accuracy: {acc_train:.4f}, F1: {f1_train:.4f}\n"
         f"Test  | Accuracy: {acc_test:.4f}, F1: {f1_test:.4f}"
-    )
+        )
 
         '''
             Plot feature importance
@@ -96,36 +98,32 @@ def main():
         feature_importances = model.feature_importances_
         indices = np.argsort(feature_importances)[::-1]
 
-        plt.figure(figsize=(10, 6))
-        plt.title("Feature Importances")
-        plt.bar(range(X.shape[1]), feature_importances[indices], align="center")
-        plt.xticks(range(X.shape[1]), [feature_names[i] for i in indices], rotation=45)
-        plt.tight_layout()
+        fig_importance, ax1 = plt.subplots(figsize=(10, 6))
+        ax1.set_title("Feature Importances")
+        ax1.bar(range(X_train.shape[1]), feature_importances[indices], align="center")
+        ax1.set_xticks(range(X_train.shape[1]))
+        ax1.set_xticklabels([feature_names[i] for i in indices], rotation=45)
+        fig_importance.tight_layout()
 
-        plt_path_feature_importance = "feature_importance.png"
-        plt.savefig(plt_path_feature_importance)
-        plt.close()
-
-        mlflow.log_artifact(plt_path_feature_importance)
-
+        mlflow.log_figure(fig_importance, "plots/feature_importance.png")
+        plt.close(fig_importance)
 
         '''
             Plot confusion matrix
         '''
-        fig, ax = plt.subplots(figsize=(8, 6))
-        ConfusionMatrixDisplay.from_predictions(y_test, y_pred, ax=ax)
-        plt.title("Confusion Matrix")
+        fig_cm, ax2 = plt.subplots(figsize=(8, 6))
+        ConfusionMatrixDisplay.from_predictions(y_test, y_test_pred, ax=ax2)
+        ax2.set_title("Confusion Matrix")
 
-        plot_path = "confusion_matrix.png"
-        plt.savefig(plot_path)
-        plt.close()
+        mlflow.log_figure(fig_cm, "plots/confusion_matrix.png")
+        plt.close(fig_cm)
 
-        mlflow.log_artifact(plot_path)
 
         mlflow.sklearn.log_model(
             sk_model=model,
             name="random_forest_classifier",
-            registered_model_name="RandomForestClassifier_TelcoChurn"
+            registered_model_name="RandomForestClassifier_TelcoChurn",
+            serialization_format="skops" 
         )
         print("Run complete. Artifacts logged.")
 
