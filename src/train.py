@@ -98,7 +98,8 @@ def main():
         f"Test  | Accuracy: {acc_test:.4f}, F1: {f1_test:.4f}"
         )
 
-        metrics_path = os.path.join("models/metrics", "metrics.json")
+        metrics_path_gen = os.path.join("models", "metrics")
+        metrics_path = os.path.join(metrics_path_gen, "metrics.json")
 
         with open(metrics_path, "w") as f:
             json.dump({
