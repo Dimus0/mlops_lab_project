@@ -1,3 +1,5 @@
+import os
+
 import mlflow
 import argparse
 import numpy as np
@@ -10,6 +12,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from imblearn.over_sampling import SMOTE
+import json
 
 """
     How to run:
@@ -91,6 +94,16 @@ def main():
         f"Train | Accuracy: {acc_train:.4f}, F1: {f1_train:.4f}\n"
         f"Test  | Accuracy: {acc_test:.4f}, F1: {f1_test:.4f}"
         )
+
+        metrics_path = os.path.join("models/metrics", "metrics.json")
+
+        with open(metrics_path, "w") as f:
+            json.dump({
+                "accuracy_train": acc_train,
+                "f1_train": f1_train,
+                "accuracy_test": acc_test,
+                "f1_test": f1_test
+            }, f)
 
         '''
             Plot feature importance

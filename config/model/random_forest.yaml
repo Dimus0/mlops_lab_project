@@ -1,0 +1,9 @@
+model_type: random_forest
+
+params:
+  n_estimators:
+    low: 50
+    high: 200
+  max_depth:
+    low: 5
+    high: 20

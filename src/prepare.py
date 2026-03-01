@@ -22,6 +22,7 @@ for column in df.columns:
 X = df.drop(columns=["Churn"])
 y = df["Churn"]
 
+# Треба замінити по іншому, щоб відбувалися тільки на train sample
 smote = SMOTE(random_state=42)
 X_balance, y_balanced = smote.fit_resample(X, y)
 
