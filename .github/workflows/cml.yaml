@@ -50,13 +50,10 @@ jobs:
         run: |
           echo "## ML Experiment Report" > report.md
           echo "### Metrics" >> report.md
-          # Перетворюємо JSON у таблицю або просто виводимо вміст
+
           echo "\`\`\`json" >> report.md
-          cat metrics.json >> report.md
+          cat models/metrics/metrics.json >> report.md
           echo "\`\`\`" >> report.md
-          
-          echo "### Visualizations" >> report.md
-          cml publish confusion_matrix.png --md >> report.md
           
           echo "### Quality Gate" >> report.md
           echo "F1 threshold: $F1_THRESHOLD" >> report.md 
