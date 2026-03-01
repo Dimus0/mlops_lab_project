@@ -47,7 +47,6 @@ jobs:
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        run: |
           echo "## ML Experiment Report" > report.md
           echo "### Metrics" >> report.md
 
