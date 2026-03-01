@@ -32,8 +32,8 @@ def main():
 
 
     print("Loading data...")
-    train_df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\prepared\train.csv")
-    test_df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\prepared\test.csv")
+    train_df = pd.read_csv(r"data\prepared\train.csv")
+    test_df = pd.read_csv(r"data\prepared\test.csv")
     print("Data loaded successfully.")
 
     X_train = train_df.drop(columns=["Churn"])
