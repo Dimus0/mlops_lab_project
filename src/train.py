@@ -1,5 +1,6 @@
 import os
 
+import joblib
 import mlflow
 import argparse
 import numpy as np
@@ -111,6 +112,12 @@ def main():
                 "accuracy_test": acc_test,
                 "f1_test": f1_test
             }, f)
+
+
+        model_output_path = os.path.join("models", "best_model.pkl")
+        os.makedirs(os.path.dirname(model_output_path), exist_ok=True)
+        joblib.dump(model, model_output_path)
+        print(f"Model weights saved to {model_output_path}")
 
         '''
             Plot feature importance
