@@ -98,8 +98,11 @@ def main():
         f"Test  | Accuracy: {acc_test:.4f}, F1: {f1_test:.4f}"
         )
 
-        metrics_path_gen = os.path.join("models", "metrics")
-        metrics_path = os.path.join(metrics_path_gen, "metrics.json")
+        metrics_path = os.path.join("models", "metrics", "metrics.json")
+
+        os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
+
+        print(f"Saving metrics to {metrics_path}...")
 
         with open(metrics_path, "w") as f:
             json.dump({
