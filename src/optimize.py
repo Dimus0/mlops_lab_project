@@ -5,7 +5,7 @@ from omegaconf import DictConfig
 import mlflow.sklearn
 import json
 import os
-from joblib import dump
+import pickle
 
 import numpy as np
 import pandas as pd
@@ -109,8 +109,9 @@ def main(cfg: DictConfig):
 
         model.fit(X_train, y_train)
 
-        model_path = os.path.join("models", "best_model.joblib")
-        dump(model, model_path)
+        model_path = os.path.join("models", "best_model.pkl")
+        with open(model_path, 'wb') as f:
+            pickle.dump(model, f)
 
         mlflow.log_artifact(model_path)
 
