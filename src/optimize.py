@@ -52,7 +52,7 @@ def objective(trial: optuna.Trial, cfg: DictConfig) -> float:
         preds = model.predict(X_val)
 
         score = f1_score(y_val, preds)
-
+        
         mlflow.log_params(params)
         mlflow.log_metric(cfg.hpo.metric,score)
 
@@ -97,6 +97,18 @@ def main(cfg: DictConfig):
 
         mlflow.log_metric("best_score", best_score)
         mlflow.log_metric("last_score", last_score)
+
+        metrics_dict = {
+            "f1_test": best_score,
+            "f1_last": last_score
+        }
+        metrics_path = os.path.join("models/metrics","metrics.json")
+        os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
+        with open(metrics_path, "w") as f:
+            json.dump(metrics_dict, f)
+
+
+
         mlflow.log_dict(study.best_params, "best_params.json")
         mlflow.log_text(str(cfg), "config.yaml")
 

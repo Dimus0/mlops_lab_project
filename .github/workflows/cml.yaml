@@ -1,0 +1,71 @@
+name: Model CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: "pip"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r src/requirements.txt
+    - name: Lint (flake8)
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Train model
+      run: |
+        python src/train.py
+    
+    - name: Run tests
+      env:
+        F1_TEST_THRESHOLD: 0.78
+      run: |
+        pytest -q
+
+    - name: Create CML report
+      if: github.event_name == 'pull_request'
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        run: |
+          echo "## ML Experiment Report" > report.md
+          echo "### Metrics" >> report.md
+          # Перетворюємо JSON у таблицю або просто виводимо вміст
+          echo "\`\`\`json" >> report.md
+          cat metrics.json >> report.md
+          echo "\`\`\`" >> report.md
+          
+          echo "### Visualizations" >> report.md
+          cml publish confusion_matrix.png --md >> report.md
+          
+          echo "### Quality Gate" >> report.md
+          echo "F1 threshold: $F1_THRESHOLD" >> report.md 
+          
+          cml comment create report.md
+
+    - name: Upload model artifact
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/upload-artifact@v4
+      with:
+        name: best_model
+        path: models/best_model.pkl
