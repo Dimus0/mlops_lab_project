@@ -30,10 +30,13 @@ def parser_args():
 def main():
     args = parser_args()
 
+    train_path = os.path.join("data", "prepared", "train.csv")
+    test_path = os.path.join("data", "prepared", "test.csv")
+
 
     print("Loading data...")
-    train_df = pd.read_csv(r"data\prepared\train.csv")
-    test_df = pd.read_csv(r"data\prepared\test.csv")
+    train_df = pd.read_csv(train_path)
+    test_df = pd.read_csv(test_path)
     print("Data loaded successfully.")
 
     X_train = train_df.drop(columns=["Churn"])
