@@ -42,10 +42,14 @@ jobs:
       run: |
         pytest -q
 
+    - name: Setup CML
+      uses: iterative/setup-cml@v2
+
     - name: Create CML report
       if: github.event_name == 'pull_request'
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        F1_THRESHOLD: "0.78"
       run: |
           echo "## ML Experiment Report" > report.md
           echo "### Metrics" >> report.md
