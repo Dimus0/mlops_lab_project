@@ -5,6 +5,7 @@ from airflow.sensors.filesystem import FileSensor
 from datetime import datetime
 import json
 import os
+from mlflow.tracking import MlflowClient
 
 PROJECT_DIR = '/opt/airflow/dags'
 
@@ -30,6 +31,28 @@ def evaluate_model(**kwargs):
     except Exception as e:
         print(f"Error reading metrics: {e}")
         return 'stop_pipeline'    
+
+def transition_model_to_staging(**kwargs):
+    tracking_uri = f"sqlite:///{PROJECT_DIR}/mlflow.db"
+    client = MlflowClient(tracking_uri=tracking_uri)
+
+    model_name = "RandomForestClassifier_TelcoChurn"
+    versions = client.search_model_versions(f"name='{model_name}'")
+    if not versions:
+        print(f"No versions found for model {model_name}")
+        return
+    
+    latest_version = max([int(v.version) for v in versions])
+    
+    # Змінюємо статус на Staging
+    client.transition_model_version_stage(
+        name=model_name,
+        version=str(latest_version),
+        stage="Staging",
+        archive_existing_versions=True # Автоматично відправляє попередні Staging-версії в Архів
+    )
+    print(f"Модель {model_name} (версія {latest_version}) успішно переведена у Staging!")
+
 
 with DAG(
     dag_id='ml_training_pipeline',
@@ -59,9 +82,9 @@ with DAG(
         python_callable=evaluate_model
     )
 
-    stage_register = BashOperator(
+    stage_register = PythonOperator(
         task_id='deploy_model',
-        bash_command='echo "Accuracy > 0.85. Registering in MLflow Model Registry..."'
+        python_callable=transition_model_to_staging
     )
 
     stage_stop = BashOperator(

@@ -38,9 +38,9 @@ jobs:
     
     - name: Run tests
       env:
-        F1_TEST_THRESHOLD: 0.78
+        F1_TEST_THRESHOLD: 0.81
       run: |
-        pytest -q
+        python tests/test_model.py
 
     - name: Setup CML
       uses: iterative/setup-cml@v2
@@ -49,7 +49,7 @@ jobs:
       if: github.event_name == 'pull_request'
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        F1_THRESHOLD: "0.78"
+        F1_THRESHOLD: "0.81"
       run: |
           echo "## ML Experiment Report" > report.md
           echo "### Metrics" >> report.md
