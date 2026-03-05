@@ -142,6 +142,8 @@ def main():
         ConfusionMatrixDisplay.from_predictions(y_test, y_test_pred, ax=ax2)
         ax2.set_title("Confusion Matrix")
 
+        fig_cm.savefig("confusion_matrix.png")
+
         mlflow.log_figure(fig_cm, "plots/confusion_matrix.png")
         plt.close(fig_cm)
 

@@ -24,7 +24,7 @@ def test_quality_of_model():
     with open(metrics_path, "r", encoding="utf-8") as f:
         metrics = json.load(f)
 
-    assert metrics["f1_test"] > 0.78, "F1 score on test set is too low"
+    assert metrics["f1_test"] > 0.81, "F1 score on test set is too low"
 
 def test_artifact_exists():
     model_path = os.path.join("models", "best_model.pkl")

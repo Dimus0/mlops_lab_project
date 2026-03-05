@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  airflow:
+    image: apache/airflow:2.5.1
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./:opt/project
+
+    ports:
+      - "8080:8080"
+
+    
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow webserver"
+
+  mlflow:
+    image: python:3.12
+
+    working_dir: /app
+
+    volumes:
+      - ./:/app
+
+    ports:
+      - "5000:5000"
+
+    command: >
+      bash -c "
+      pip install mlflow &&
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri file:./mlruns
+      --default-artifact-root ./mlruns
+      "
