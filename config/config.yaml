@@ -20,8 +20,8 @@ model:
 
 hpo:
   n_trials: 50
-  sampler: "tpe"
-  metric: "f1_score"
+  sampler: "random"
+  metric: "f1"
   direction: "maximize"
   use_cv: False
   cv_folds: 5
