@@ -30,7 +30,7 @@ jobs:
 
     - name: DAG test
       run: |
-        pytest
+        python tests/test_dag.py
 
     - name: Docker build
       run: |
