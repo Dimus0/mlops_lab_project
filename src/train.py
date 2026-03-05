@@ -1,5 +1,6 @@
 import os
 
+import joblib
 import mlflow
 import argparse
 import numpy as np
@@ -30,10 +31,13 @@ def parser_args():
 def main():
     args = parser_args()
 
+    train_path = os.path.join("data", "prepared", "train.csv")
+    test_path = os.path.join("data", "prepared", "test.csv")
+
 
     print("Loading data...")
-    train_df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\prepared\train.csv")
-    test_df = pd.read_csv(r"D:\Python\MLOPS\mlops_lab_1\data\prepared\test.csv")
+    train_df = pd.read_csv(train_path)
+    test_df = pd.read_csv(test_path)
     print("Data loaded successfully.")
 
     X_train = train_df.drop(columns=["Churn"])
@@ -95,7 +99,11 @@ def main():
         f"Test  | Accuracy: {acc_test:.4f}, F1: {f1_test:.4f}"
         )
 
-        metrics_path = os.path.join("models/metrics", "metrics.json")
+        metrics_path = os.path.join("models", "metrics", "metrics.json")
+
+        os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
+
+        print(f"Saving metrics to {metrics_path}...")
 
         with open(metrics_path, "w") as f:
             json.dump({
@@ -104,6 +112,12 @@ def main():
                 "accuracy_test": acc_test,
                 "f1_test": f1_test
             }, f)
+
+
+        model_output_path = os.path.join("models", "best_model.pkl")
+        os.makedirs(os.path.dirname(model_output_path), exist_ok=True)
+        joblib.dump(model, model_output_path)
+        print(f"Model weights saved to {model_output_path}")
 
         '''
             Plot feature importance

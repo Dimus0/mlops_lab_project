@@ -10,7 +10,7 @@ import pickle
 import numpy as np
 import pandas as pd
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.metrics import f1_score,accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 
@@ -43,6 +43,7 @@ def build_model(cfg: DictConfig, trial: optuna.Trial) -> RandomForestClassifier:
     return model,params
 
 def objective(trial: optuna.Trial, cfg: DictConfig) -> float:
+
     with mlflow.start_run(nested=True):
         X_train, X_val, y_train, y_val = prepared_data(cfg)
 
@@ -51,18 +52,25 @@ def objective(trial: optuna.Trial, cfg: DictConfig) -> float:
         model.fit(X_train, y_train)
         preds = model.predict(X_val)
 
-        score = f1_score(y_val, preds)
+        scores = cross_val_score(
+            model, 
+            X_val,
+            y_val, 
+            cv=cfg.hpo.cv_folds,
+            scoring=cfg.hpo.metric,
+            n_jobs=-1
+        )
 
+        score = float(np.mean(scores))
+        
         mlflow.log_params(params)
         mlflow.log_metric(cfg.hpo.metric,score)
 
         mlflow.set_tags({
-            "author": "Puhachevskyi Dmytro",
-            "dataset": "Telco Customer Churn",
-            "model": cfg.model.type,
-            "hpo_method": "Optuna",
+            "trial_number": trial.number,
             "sampler": cfg.hpo.sampler,
-            "random_seed": cfg.data.random_state
+            "model_type": cfg.model.type,
+            "seed": cfg.data.random_state
         })
 
         return score
@@ -97,6 +105,16 @@ def main(cfg: DictConfig):
 
         mlflow.log_metric("best_score", best_score)
         mlflow.log_metric("last_score", last_score)
+
+        metrics_dict = {
+            "f1_test": best_score,
+            "f1_last": last_score
+        }
+        metrics_path = os.path.join("models/metrics","metrics.json")
+        os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
+        with open(metrics_path, "w") as f:
+            json.dump(metrics_dict, f)
+
         mlflow.log_dict(study.best_params, "best_params.json")
         mlflow.log_text(str(cfg), "config.yaml")
 

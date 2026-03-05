@@ -11,4 +11,5 @@ mlruns/
 .vscode/
 mlflow.db
 mlruns/
-data/
+data/raw
+mlartifacts/
